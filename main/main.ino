@@ -1,7 +1,16 @@
 #include <Arduino.h>
 #include <DFRobot_RGBMatrix.h> // Hardware-specific library
 #include "testNewLab.h"
+#include <PubSubClient.h>
+#include <WiFi.h>
 
+#define WIFI_SSID "Wokwi-GUEST"
+#define WIFI_PW ""
+#define MQTT_BROKER "broker.mqtt-dashboard.com"
+#define MQTT_PORT 1883
+
+WiFiClient megaClient;
+PubSubClient client(megaClient);
 
 #define OE   	9
 #define LAT 	10
@@ -72,6 +81,40 @@ void setup() {
   // fill the screen with 'black'
   matrix.fillScreen(matrix.Color333(0, 0, 0));
     showLab();
+
+
+  // Wifi connection
+  WiFi.begin(WIFI_SSID, WIFI_PW);
+  //Waiting for wifi connection
+  while (WiFi.status() != WL_CONNECTED){
+    Serial.println("Connecting");
+    Serial.print(".");
+  }
+  Serial.println("");
+  Serial.println("Connected");
+  Serial.println("Hotspot connected");
+  Serial.println(WIFI_SSID);
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
+
+  // MQTT broker connection
+  client.setServer(MQTT_BROKER, MQTT_PORT);
+  // callback function
+  client.setCallback(callback);
+
+  while (!client.connected()) {
+    Serial.println("Connecting to MQTT...");
+    // If connected with success
+    if (client.connect("ArduinoMaze", "ArduinoMaze", "Azertypoiu12" )) {
+        Serial.println("Connected to broker");
+        client.subscribe("mov");
+    // If not
+    } else {
+        Serial.print("failed with state ");
+        Serial.print(client.state());
+        delay(2000);
+    }
+  }
 
 }
 
@@ -253,3 +296,31 @@ int main(int argc, char *argv[]) {
 */
 
 
+void callback(char* topic, byte* payload, unsigned int lenght){
+  // Recieved message container
+  String ValueString;
+  // Print recieved message
+  Serial.print("Message arrived in topic: ");
+  Serial.println(topic);
+  Serial.print("Message ");
+  for (int i = 0; i < lenght; i++){
+    // Copying payload values into ValueString
+    ValueString = ValueString + (char)payload[i];
+  }
+  
+  // Cast into Int
+  Serial.println(ValueString.toInt());
+  
+  // 
+  switch(String(topic)) {
+    case "mov":
+        Serial.println("Topic: mov");
+        Serial.println(ValueString);
+        break;
+    default:
+        Serial.println(ValueString);
+        break;
+  }
+
+   delay(100);
+}
