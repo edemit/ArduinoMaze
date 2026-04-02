@@ -13,26 +13,26 @@
         <div class="wrapper">
             <div class="connection">
                 <h2 class="title">Connection</h2>
-                <form action="" id="connection-information-form" class="connectionForm">
-                    <p>Hostname or IP Address and Port Number:</p> 
-                    <input id="host" type="text" name="host" placeholder="broker host">
-                    
-                    <input id="port" type="text" name="port" value="8080">
-                    <p>Username and Password:</p>
-                    <input id="username" type="text" name="Username" placeholder="Username">
-                    
-                    <input id="password" type="password" name="password" placeholder="password">
-                    <p>Subscription topic:</p>
-                    <input id="topic_s" type="text" name="topic_s" value="#">
-                    <input type="button" onclick="startConnect()"  value="Connect">
-                    <input type="button"  onclick="startDisconnect()" value="Disconnect">
-                    <p>Publish Topic and Message:</p>
-                    <input id="topic_p" type="text" name="topic_p" placeholder="Publish topic">
-                    
-                    <input id="Message" type="text" name="message"  placehilder="Message">
-                    <input type="button" onclick="publishMessage()" value="Publish">
-                </form>
+                <!-- WebSerial Connection Form -->
+                <div class="webserial-section">
+                    <h3>Serial Connection (Arduino)</h3>
+                    <div id="connection-status" style="margin: 10px 0; padding: 10px; background: #ffebee; border-left: 4px solid #f44336; border-radius: 4px;">
+                        <strong>Status:</strong> <span id="status-indicator">●</span> <span id="status-text">Not Connected</span>
+                    </div>
+                    <form id="webserial-form" class="connectionForm">
+                        <p>Baud Rate:</p>
+                        <input id="baudRate" type="number" name="baudRate" value="115200" min="300" max="2000000">
+                        <input type="button" onclick="startWebSerialConnect()" value="🔗 Connect Serial" style="background: #4CAF50; color: white; cursor: pointer;">
+                        <input type="button" onclick="startWebSerialDisconnect()" value="🔌 Disconnect Serial" style="background: #f44336; color: white; cursor: pointer;">
+                        <p>Send Command:</p>
+                        <input id="serialMessage" type="text" name="serialMessage" placeholder="Enter command and press Send or Enter">
+                        <input type="button" onclick="sendSerialMessage()" value="📤 Send" style="background: #2196F3; color: white; cursor: pointer;">
+                        <input type="button" onclick="clearSerialOutput()" value="🗑️ Clear Log" style="background: #FF9800; color: white; cursor: pointer;">
+                    </form>
+                    <div id="serial-output" class="serial-log" style="border: 1px solid #ccc; padding: 10px; margin-top: 10px; height: 200px; overflow-y: auto; background: #f5f5f5; font-family: 'Courier New', monospace; font-size: 12px;"></div>
+                </div>
             </div>
+
             <div class="maze">
                 <div class="maze_screen"></div>
                 <div class="maze_controls"></div>

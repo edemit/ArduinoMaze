@@ -1,0 +1,27 @@
+{
+  "name": "arduinomaze",
+  "version": "1.0.0",
+  "description": "Maze game using Arduino Mega and DFRobot RGB 64x64 display",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/edemit/ArduinoMaze.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/edemit/ArduinoMaze/issues"
+  },
+  "homepage": "https://github.com/edemit/ArduinoMaze#readme",
+  "dependencies": {
+    "express": "^4.18.2",
+    "serialport": "^11.0.0",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {}
+}
