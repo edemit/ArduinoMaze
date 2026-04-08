@@ -7,6 +7,8 @@ class laby {
     //---constantes---//
 
     public:
+        //since each rooms are sharing the byte with another room 
+        //we will use those predeteminded constant to make the calculations more readable
         #define F_DOWN 0b00010000  // bit 0 → 1
         #define F_RIGHT 0b00100000  // bit 1 → 2
         #define F_UP 0b01000000  // bit 2 → 4
@@ -15,9 +17,11 @@ class laby {
         #define F_RIGHT2 0b00000010  // bit 1 → 2
         #define F_UP2 0b00000100  // bit 2 → 4
         #define F_LEFT2 0b00001000  // bit 3 → 8
-        int *schemaLab;
-        int TAILLE ,TAILLE_G,END,ORIGIN=0,posPlayer=0;
+        uint8_t TAILLE ,TAILLE_G,END,ORIGIN=0,posPlayer=0,posPlayer2=0;
         uint8_t *lab;
+        bool objectifsBool[2]={false,false};
+        uint8_t objectifsPos[2]={6,36};
+
 
         laby(int taille,int tailleG) {
             TAILLE=taille;
@@ -26,20 +30,39 @@ class laby {
             lab = new uint8_t[(TAILLE*TAILLE)/2]();
         }
 
-
-        void newDimLab() {// je check les voisins pour chaques cases pour crééer le labyrinthe definitif
+        /** checking each neighborings cases to see if they are coming to my case 
+        we need to check each of those possibles connections because the algorythm used to make 
+        my labyrinth use an oriented graph that needs to be transform to a simple graph*/
+        void newDimLab() {
             for (int y = 0; y < TAILLE*TAILLE; y++) {
-                if (checkFlag(y-1,1)) {//je check que la case d'avant vienne vers moi
+                if (checkFlag(y-1,1)) {//checking west neighbor
                     addDirection(y,3);
-                }if (checkFlag(y-TAILLE,0)) {//je check que la case d'au dessus vienne vers moi
+                }if (checkFlag(y-TAILLE,0)) {//checking north neighbor
                     addDirection(y,2);
-                }if (checkFlag(y+1,3)) {//je check que la case de devant vienne vers moi
+                }if (checkFlag(y+1,3)) {//checking east neighbor
                     addDirection(y,1);
-                }if (checkFlag(y+TAILLE,2)) {//je check que la case de dessous vienne vers moi
+                }if (checkFlag(y+TAILLE,2)) {//checking south neighbor
                     addDirection(y,0);
                 }
             }
         }
+
+        /* 
+        */
+        void getDoorClosed(uint8_t angle){
+            /*switch(angle){
+                case 0;
+                 false
+                case 1;
+                case 2;
+                case 3;
+
+            }*/
+            //return {false,false};
+        }
+
+        /**function used to rotate to the left a piece of the labyrinth
+        */
         void rotateMatrix() {
             uint8_t leftPart=lab[posPlayer/2]>>4;//extrait la partie de gauche de l'octet
             uint8_t rightPart= lab[posPlayer/2] & 0xF;//extrait la partie de droite de l'octet
@@ -197,73 +220,6 @@ class laby {
                 }
             }
         }
-
-
-
-
-
-
-
-
-/*void largueur() {
-    Index file[(TAILLE*TAILLE)/2]={};
-    file[0]={0,0};
-    for (auto & i : visite) {
-        i={0,0};
-    }
-    int debut=0;
-    int fin=1;
-    int finV=1;
-    while (fin!=debut) {
-        Index tete = file[debut];
-        debut++;
-        //std::cout << tete.x  <<""<< tete.y << "voici la tete"  << std::endl  ;
-
-        if ((tete.y)>0
-            and schemaLab[tete.y][tete.x][0][(newlab.TAILLE_G/2)]==1
-            and schemaLab[tete.y-1][tete.x][(newlab.TAILLE_G-1)][(newlab.TAILLE_G/2)]==1
-            and !inTab(finV,visite,{tete.y-1,tete.x})) {
-            file[fin]={tete.y-1,tete.x};
-            visite[finV]={tete.y-1,tete.x};
-            finV++;
-            fin=(fin+1)%30;
-            //std::cout << tete.x <<""<< tete.y-1 << "enfant de la tete1" << std::endl  ;
-        }if (tete.x>0
-            and schemaLab[tete.y][tete.x][(newlab.TAILLE_G/2)][0]==1
-            and schemaLab[tete.y][tete.x-1][(newlab.TAILLE_G/2)][newlab.TAILLE_G-1]==1
-            and !inTab(finV,visite,{tete.y,tete.x-1})) {
-            file[fin]={tete.y,tete.x-1};
-            visite[finV]={tete.y,tete.x-1};
-            finV++;
-            fin=(fin+1)%30;
-            //std::cout << tete.x-1 <<""<< tete.y << "enfant de la tete2" << std::endl  ;
-        }if (tete.y<(TAILLE-1)
-            and schemaLab[tete.y][tete.x][newlab.TAILLE_G-1][(newlab.TAILLE_G/2)]==1
-            and schemaLab[tete.y+1][tete.x][0][(newlab.TAILLE_G/2)]==1
-            and !inTab(finV,visite,{tete.y+1,tete.x})) {
-
-            file[fin]={tete.y+1,tete.x};
-            visite[finV]={tete.y+1,tete.x};
-            finV++;
-            fin=(fin+1)%30;
-            //std::cout << tete.x <<""<< tete.y+1 << "enfant de la tete3" << std::endl  ;
-        }if (tete.x<(TAILLE-1)
-            and schemaLab[tete.y][tete.x][(newlab.TAILLE_G/2)][newlab.TAILLE_G-1]==1
-            and schemaLab[tete.y][tete.x+1][(newlab.TAILLE_G/2)][0]==1
-            and !inTab(finV,visite,{tete.y,tete.x+1})) {
-            file[fin]={tete.y,tete.x+1};
-            visite[finV]={tete.y,tete.x+1};
-            finV++;
-            fin=(fin+1)%30;
-            //std::cout << tete.x+1 <<""<< tete.y << "enfant de la tete4" << std::endl  ;
-        }
-    }
-}*/
-
-
-
-
-
 };
 
 #endif UNTITLED1_LABY_H
