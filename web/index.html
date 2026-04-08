@@ -28,6 +28,15 @@
                         <input id="serialMessage" type="text" name="serialMessage" placeholder="Enter command and press Send or Enter">
                         <input type="button" onclick="sendSerialMessage()" value="📤 Send" style="background: #2196F3; color: white; cursor: pointer;">
                         <input type="button" onclick="clearSerialOutput()" value="🗑️ Clear Log" style="background: #FF9800; color: white; cursor: pointer;">
+                        p>Test button:</p>
+                        //unc still got it in js
+                        <input type="button" onclick="interactionWithMatrix('up')" value="up" style="background: #2196F3; color: white; cursor: pointer;">
+                        <input type="button" onclick="interactionWithMatrix('down')" value="down" style="background: #2196F3; color: white; cursor: pointer;">
+                        <input type="button" onclick="interactionWithMatrix('left')" value="left" style="background: #2196F3; color: white; cursor: pointer;">
+                        <input type="button" onclick="interactionWithMatrix('right')" value="right" style="background: #2196F3; color: white; cursor: pointer;">
+                        <input type="button" onclick="interactionWithMatrix('rotate')" value="rotate" style="background: #2196F3; color: white; cursor: pointer;">
+                            
+
                     </form>
                     <div id="serial-output" class="serial-log" style="border: 1px solid #ccc; padding: 10px; margin-top: 10px; height: 200px; overflow-y: auto; background: #f5f5f5; font-family: 'Courier New', monospace; font-size: 12px;"></div>
                 </div>

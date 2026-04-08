@@ -207,3 +207,35 @@ function updateConnectionStatus(isConnected, portInfo = '') {
         connectionStatus.style.borderLeftColor = '#f44336';
     }
 }
+
+
+async function interactionWithMatrix(command) {
+    if (!isSerialConnected || !serialConnection) {
+        logSerialOutput('✗ Error: Serial device not connected');
+        return;
+    }
+
+    try {
+        const response = await fetch('http://localhost:3000/api/serial/send', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                connectionId: serialConnection,
+                message: command + '\n' // Ensure command is sent with newline if needed
+            })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            //logSerialOutput(command);
+        } else {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to send message');
+        }
+    } catch (error) {
+        logSerialOutput('✗ Send error: ' + error.message);
+        console.error('Serial send error:', error);
+    }
+}
