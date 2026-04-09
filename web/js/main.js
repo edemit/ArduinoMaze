@@ -30,6 +30,18 @@ async function startWebSerialConnect() {
             })
         });
 
+        // After connection, send a test message to verify communication
+        const connected = await fetch('http://localhost:3000/api/serial/send', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                connectionId: serialConnection,
+                message: "200\n"
+            })
+        });
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -39,6 +51,7 @@ async function startWebSerialConnect() {
         if (data.success) {
             serialConnection = data.connectionId;
             isSerialConnected = true;
+            
             updateConnectionStatus(true, data.port || 'Unknown Port');
             logSerialOutput('✓ Connected to serial device at ' + baudRate + ' baud');
             logSerialOutput('→ Port: ' + (data.port || 'Auto-detected'));
