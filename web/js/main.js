@@ -212,17 +212,24 @@ function updateConnectionStatus(isConnected, portInfo = '') {
         statusText.textContent = '✓ Connected to ' + portInfo;
         connectionStatus.style.background = '#e8f5e9';
         connectionStatus.style.borderLeftColor = '#4CAF50';
+        stopIdleAnimation(); // Stop animation when connected
     } else {
         statusIndicator.textContent = '●';
         statusIndicator.style.color = '#f44336';
         statusText.textContent = '✗ Not Connected';
         connectionStatus.style.background = '#ffebee';
         connectionStatus.style.borderLeftColor = '#f44336';
+        startIdleAnimation(); // Start animation when disconnected
     }
 }
 
 
 async function interactionWithMatrix(command) {
+    if (['up', 'down', 'left', 'right'].includes(command)) {
+        movePlayerDirection(command);
+        return;
+    }
+    
     if (!isSerialConnected || !serialConnection) {
         logSerialOutput('✗ Error: Serial device not connected');
         return;
@@ -236,13 +243,13 @@ async function interactionWithMatrix(command) {
             },
             body: JSON.stringify({
                 connectionId: serialConnection,
-                message: command + '\n' // Ensure command is sent with newline if needed
+                message: command + '\n'
             })
         });
 
         if (response.ok) {
             const data = await response.json();
-            //logSerialOutput(command);
+            logSerialOutput('📤 Sent: ' + command);
         } else {
             const error = await response.json();
             throw new Error(error.message || 'Failed to send message');
