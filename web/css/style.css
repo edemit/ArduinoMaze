@@ -47,19 +47,18 @@
     display: grid;
     grid-template-columns: repeat(8, 1fr);
     grid-template-rows: repeat(8, 1fr);
-    gap: 2px;
     background: #333;
     padding: 10px;
     border-radius: 4px;
     aspect-ratio: 1;
+    gap: 0;
 }
 
 .maze_cell {
     background: #ffffff;
-    border: 1px solid #ccc;
-    border-radius: 2px;
     cursor: pointer;
     transition: background 0.2s;
+    box-sizing: border-box;
 }
 
 .maze_cell:hover {
@@ -75,9 +74,166 @@
 }
 
 .maze_cell.player {
-    border: 5px solid #f16d2f;
+    background: #ffffcc;
 }
 
 .maze_cell.goal {
     background: #4CAF50;
+}
+
+/* Debug Panel Styles */
+.debug-panel {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: 450px;
+    max-height: 90vh;
+    background: #ffffff;
+    border-left: 3px solid #ff9800;
+    border-top: 3px solid #ff9800;
+    border-radius: 8px 8px 0 0;
+    box-shadow: -2px -2px 10px rgba(0,0,0,0.2);
+    z-index: 1001;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+.debug-container {
+    padding: 20px;
+}
+
+.debug-container h2 {
+    margin-top: 0;
+    color: #ff9800;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.debug-close-btn {
+    background: #f44336;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.debug-close-btn:hover {
+    background: #d32f2f;
+}
+
+.debug-section {
+    margin-top: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.debug-section:last-child {
+    border-bottom: none;
+}
+
+.debug-section h3 {
+    margin-top: 0;
+    color: #333;
+    font-size: 16px;
+}
+
+.debug-section textarea {
+    width: 100%;
+    padding: 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+.debug-section button {
+    width: 100%;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: opacity 0.2s;
+}
+
+.debug-section button:hover {
+    opacity: 0.8;
+}
+
+.debug-section label {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.debug-section input[type="checkbox"] {
+    margin-right: 10px;
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+}
+
+#debug-cell-info {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    color: #666;
+}
+
+@media (max-width: 768px) {
+    .debug-panel {
+        width: 100%;
+        bottom: 0;
+        right: 0;
+    }
+}
+
+/* Maze Container - position relative for overlay */
+.maze {
+    position: relative;
+    display: inline-block;
+}
+
+/* Overlay grid for selection highlight */
+.maze_overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    background: transparent;
+    padding: 10px;
+    border-radius: 4px;
+    aspect-ratio: 1;
+    gap: 0;
+    pointer-events: none;
+    z-index: 10;
+    box-sizing: border-box;
+}
+
+.overlay_cell {
+    background: transparent;
+    box-sizing: border-box;
+}
+
+.overlay_cell.selected {
+    outline: 3px solid #f16d2f;
+    outline-offset: 0px;
 }

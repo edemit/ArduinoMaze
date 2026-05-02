@@ -1,6 +1,8 @@
 let serialConnection = null;
 let isSerialConnected = false;
 let pollInterval = null;
+let debugMode = false;
+let serialBypass = false;
 
 // Default port for ESP32-C3 via USB
 const DEFAULT_PORT = '/dev/ttyUSB0';
@@ -50,10 +52,8 @@ async function startWebSerialConnect() {
             logSerialOutput('✓ Connected to serial device at ' + baudRate + ' baud');
             logSerialOutput('→ Port: ' + (data.port || port));
 
-            // Start polling for data
             startSerialPolling();
 
-            // FIX: test message is now inside the success block, after serialConnection is set
             const testResponse = await fetch('http://localhost:3000/api/serial/send', {
                 method: 'POST',
                 headers: {
@@ -120,7 +120,6 @@ async function startSerialPolling() {
         if (!isSerialConnected || !serialConnection) return;
 
         try {
-            // FIX: removed Content-Type header — GET requests have no body
             const response = await fetch(
                 `http://localhost:3000/api/serial/read/${serialConnection}?last=50`
             );
@@ -231,8 +230,6 @@ function updateConnectionStatus(isConnected, portInfo = '') {
     }
 }
 
-// FIX: clean up server-side connection if tab is closed mid-session
-// prevents "port busy" errors on the next connect attempt
 window.addEventListener('beforeunload', () => {
     if (isSerialConnected) {
         startWebSerialDisconnect();
@@ -273,3 +270,114 @@ async function interactionWithMatrix(command) {
         console.error('Serial send error:', error);
     }
 }
+
+
+function toggleDebugMode() {
+    debugMode = !debugMode;
+    const debugPanel = document.getElementById('debug-panel');
+    debugPanel.style.display = debugMode ? 'block' : 'none';
+}
+function parseMazeInput(input) {
+    try {
+        let dataArray;
+
+        // Try JSON array format first
+        if (input.trim().startsWith('[')) {
+            dataArray = JSON.parse(input.trim());
+        } else {
+            // Try comma-separated format
+            dataArray = input.split(',').map(val => {
+                const num = parseInt(val.trim(), 10);
+                if (isNaN(num)) throw new Error('Invalid number');
+                return num;
+            });
+        }
+
+        if (!Array.isArray(dataArray)) throw new Error('Input must be an array');
+        if (dataArray.length !== 32) throw new Error('Array must contain exactly 32 integers');
+
+        // Validate all values are 0-255
+        for (let val of dataArray) {
+            if (val < 0 || val > 255) throw new Error('All values must be between 0 and 255');
+        }
+
+        return dataArray;
+    } catch (error) {
+        alert(`❌ Invalid input: ${error.message}`);
+        return null;
+    }
+}
+function loadMazeFromDebug() {
+    const input = document.getElementById('debug-maze-input').value;
+    const dataArray = parseMazeInput(input);
+
+    if (!dataArray) return;
+
+    try {
+        const mazeData = buildMazeFromData(dataArray);
+        renderMazeWithBorders(mazeData);
+        logSerialOutput('✓ Maze loaded from debug data');
+    } catch (error) {
+        alert(`❌ Error building maze: ${error.message}`);
+        logSerialOutput(`✗ Maze load error: ${error.message}`);
+    }
+}
+function generateRandomMaze() {
+    const randomData = Array.from({ length: 32 }, () =>
+        Math.floor(Math.random() * 256)
+    );
+
+    try {
+        const mazeData = buildMazeFromData(randomData);
+        renderMazeWithBorders(mazeData);
+
+        // Display generated data
+        document.getElementById('debug-maze-input').value = randomData.join(', ');
+        logSerialOutput('✓ Random maze generated: [' + randomData.join(', ') + ']');
+    } catch (error) {
+        alert(`❌ Error generating maze: ${error.message}`);
+        logSerialOutput(`✗ Random maze error: ${error.message}`);
+    }
+}
+
+function toggleSerialBypass() {
+    serialBypass = document.getElementById('bypass-serial').checked;
+    if (serialBypass) {
+        logSerialOutput('✓ Serial bypass enabled - local mode active');
+    } else {
+        logSerialOutput('✗ Serial bypass disabled - requires Arduino connection');
+    }
+}
+
+function initDebugMode() {
+    // Keyboard shortcut: Ctrl+Shift+D to show debug button
+    document.addEventListener('keydown', (event) => {
+        if (event.ctrlKey && event.shiftKey && event.code === 'KeyD') {
+            event.preventDefault();
+            const debugBtn = document.getElementById('debug-toggle-btn');
+            debugBtn.style.display = debugBtn.style.display === 'none' ? 'block' : 'none';
+        }
+    });
+    
+    document.addEventListener('click', (event) => {
+        if (event.target.classList.contains('maze_cell') && debugMode) {
+            const row = parseInt(event.target.dataset.row);
+            const col = parseInt(event.target.dataset.col);
+
+            if (mazeWallConfig.length > 0 && mazeWallConfig[row] && mazeWallConfig[row][col]) {
+                const walls = mazeWallConfig[row][col];
+                const info = `Cell [${row}, ${col}]\n` +
+                    `Right: ${walls.right ? '✓ Open' : '✗ Wall'}\n` +
+                    `Up:    ${walls.up ? '✓ Open' : '✗ Wall'}\n` +
+                    `Left:  ${walls.left ? '✓ Open' : '✗ Wall'}\n` +
+                    `Down:  ${walls.down ? '✓ Open' : '✗ Wall'}`;
+                document.getElementById('debug-cell-info').textContent = info;
+            }
+        }
+    });
+}
+
+// Initialize debug mode when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    initDebugMode();
+});
