@@ -55,8 +55,9 @@ function buildMazeFromData(dataArray) {
 
 function renderMazeWithBorders(mazeData) {
     const mazeScreen = document.querySelector('.maze_screen');
-    mazeScreen.innerHTML = ''; // Clear existing content
+    mazeScreen.innerHTML = '';
 
+    checkMazeWalls(mazeData);
     mazeWallConfig = mazeData;
     for (let i = 0; i < 8; i++) {
         for (let j = 0; j < 8; j++) {
@@ -93,6 +94,35 @@ function renderMazeWithBorders(mazeData) {
     stopIdleAnimation();
 }
 
+function checkMazeWalls(mazeData) {
+    if (!Array.isArray(mazeData) || mazeData.length !== 8) {
+        return;
+    }
+
+    for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+            const cell = mazeData[row]?.[col];
+            if (!cell) {
+                continue;
+            }
+
+            if (col < 7 && mazeData[row][col + 1]) {
+                const rightNeighbor = mazeData[row][col + 1];
+                const sharedOpen = Boolean(cell.right && rightNeighbor.left);
+                cell.right = sharedOpen;
+                rightNeighbor.left = sharedOpen;
+            }
+
+            if (row < 7 && mazeData[row + 1][col]) {
+                const bottomNeighbor = mazeData[row + 1][col];
+                const sharedOpen = Boolean(cell.down && bottomNeighbor.up);
+                cell.down = sharedOpen;
+                bottomNeighbor.up = sharedOpen;
+            }
+        }
+    }
+}
+
 // Initialize 8x8 maze grid
 function initializeMazeGrid() {
     const mazeScreen = document.querySelector('.maze_screen');
@@ -119,14 +149,12 @@ function initializeMazeGrid() {
     startIdleAnimation();
 }
 
-// Move player to a specific cell (local only, no serial)
 function movePlayerTo(row, col) {
     playerPos.row = row;
     playerPos.col = col;
     updatePlayerDisplay();
 }
 
-// Move player in a direction (local only, no serial)
 function movePlayerDirection(direction) {
     let newRow = playerPos.row;
     let newCol = playerPos.col;
@@ -147,6 +175,58 @@ function movePlayerDirection(direction) {
     }
     
     movePlayerTo(newRow, newCol);
+}
+
+// Rotate selected cell
+function rotateCell(row, col) {
+    if (!Array.isArray(mazeWallConfig) || mazeWallConfig.length !== 8) {
+        return;
+    }
+
+    if (row < 0 || row > 7 || col < 0 || col > 7) {
+        return;
+    }
+
+    const cell = mazeWallConfig[row]?.[col];
+    if (!cell) {
+        return;
+    }
+
+    const rotated = {
+        right: cell.up,
+        down: cell.right,
+        left: cell.down,
+        up: cell.left
+    };
+
+    mazeWallConfig[row][col] = rotated;
+    checkNeighborWalls(row, col);
+
+    renderMazeWithBorders(mazeWallConfig);
+}
+
+function checkNeighborWalls(row, col) {
+    const cell = mazeWallConfig[row][col];
+
+    // Up neighbor
+    if (row > 0) {
+        mazeWallConfig[row - 1][col].down = cell.up;
+    }
+
+    // Right neighbor
+    if (col < 7) {
+        mazeWallConfig[row][col + 1].left = cell.right;
+    }
+
+    // Down neighbor
+    if (row < 7) {
+        mazeWallConfig[row + 1][col].up = cell.down;
+    }
+
+    // Left neighbor
+    if (col > 0) {
+        mazeWallConfig[row][col - 1].right = cell.left;
+    }
 }
 
 // Update player display on grid

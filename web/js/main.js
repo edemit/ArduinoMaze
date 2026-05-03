@@ -265,7 +265,9 @@ async function interactionWithMatrix(command) {
         return;
     }
     if ('rotate' === command) {
-        //rotatePlayer();
+        rotateCell(playerPos.row, playerPos.col);
+        logSerialOutput('↻ Rotated cell at ' + playerPos.row + ',' + playerPos.col);
+
         command = 'rotate/'+((playerPos.col)+(playerPos.row*8)); // Send rotate command to Arduino
 
     }
