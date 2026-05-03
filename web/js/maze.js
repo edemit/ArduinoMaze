@@ -56,6 +56,9 @@ function selectCell(row, col) {
     return true;
 }
 
+let mazeBuilded = false; // Flag to indicate if the maze has been built
+let mazeDataArray = []; // Temporary array to hold incoming maze data bytes
+
 function byteToCells(byte) {
     if (typeof byte !== 'number' || byte < 0 || byte > 255) {
         throw new Error('byte must be an integer between 0 and 255');
@@ -88,7 +91,8 @@ function buildMazeFromData(dataArray) {
         if (typeof byteValue !== 'number' || byteValue < 0 || byteValue > 255) {
             throw new Error(`Invalid byte at index ${k}: ${byteValue}`);
         }
-
+        // 41 = 0010 1001 que le bas qui est bon
+        // 
         const row = Math.floor(k / 4);
         const colLeft = (k % 4) * 2;
         const [leftCell, rightCell] = byteToCells(byteValue);
@@ -117,10 +121,10 @@ function renderMazeWithBorders(mazeData) {
             const wallConfig = mazeData[i][j];
             const wallBorders = [];
             
-            if (!wallConfig.up) wallBorders.push('inset 0 1px 0 #333');
-            if (!wallConfig.left) wallBorders.push('inset 1px 0 0 #333');
-            if (j === 7 && !wallConfig.right) wallBorders.push('inset -1px 0 0 #333');
-            if (i === 7 && !wallConfig.down) wallBorders.push('inset 0 -1px 0 #333');
+            if (!wallConfig.up) wallBorders.push('inset 0 3px 0 #333');
+            if (!wallConfig.left) wallBorders.push('inset -3px 0 0 #333');
+            if (!wallConfig.right) wallBorders.push('inset 3px 0 0 #333');
+            if (!wallConfig.down) wallBorders.push('inset 0 -3px 0 #333');
 
             if (wallBorders.length > 0) {
                 cell.style.boxShadow = wallBorders.join(', ');

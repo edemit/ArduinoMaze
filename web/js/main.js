@@ -34,7 +34,7 @@ async function startWebSerialConnect() {
             },
             body: JSON.stringify({
                 baudRate: baudRate,
-                port: port           // FIX: tell the proxy exactly which port to open
+                port: DEFAULT_PORT          // FIX: tell the proxy exactly which port to open
             })
         });
 
@@ -128,7 +128,30 @@ async function startSerialPolling() {
                 const result = await response.json();
                 if (result.success && result.data && result.data.length > lastDataLength) {
                     for (let i = lastDataLength; i < result.data.length; i++) {
-                        logSerialOutput('📥 ' + result.data[i].message);
+                        const message = result.data[i].message.trim();
+                        logSerialOutput('📥 ' + message);
+                        
+                        
+                        if(!mazeBuilded){
+                            // Try to parse as maze data byte
+                            const byteValue = parseInt(message, 10);
+                            if (!isNaN(byteValue) && byteValue >= 0 && byteValue <= 255) {
+                                mazeDataArray.push(byteValue);
+                                logSerialOutput(mazeDataArray.length);
+                                if (mazeDataArray.length === 32) {
+                                    try {
+                                        const mazeData = buildMazeFromData(mazeDataArray);
+                                        renderMazeWithBorders(mazeData);
+                                        mazeBuilded = true; // Set flag to indicate maze has been built
+                                        logSerialOutput('✓ Maze built from serial data');
+                                        mazeDataArray = []; // Reset for next maze
+                                    } catch (error) {
+                                        logSerialOutput('✗ Error building maze: ' + error.message);
+                                        mazeDataArray = []; // Reset on error
+                                    }
+                                }
+                            }
+                        }
                     }
                     lastDataLength = result.data.length;
                 }
