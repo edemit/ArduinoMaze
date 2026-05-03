@@ -1,9 +1,60 @@
 let maze = [[]]; // array of arrays in bytes 
 let playerPos = { row: 0, col: 0 }; // Track player position
+let selectedCellPos = { row: 0, col: 0 }; // Track selected cell for rotation
 
 let idleAnimationInterval = null;
 let animationFrame = 0;
 let mazeWallConfig = []; // Store wall configuration for each cell
+
+function isPlayerAtCell(row, col) {
+    return playerPos.row === row && playerPos.col === col;
+}
+
+function isValidCell(row, col) {
+    return row >= 0 && row < 8 && col >= 0 && col < 8;
+}
+
+function canMoveToCell(row, col) {
+    if (!isValidCell(row, col)) {
+        return false;
+    }
+
+    const currentCell = mazeWallConfig?.[playerPos.row]?.[playerPos.col];
+    const targetCell = mazeWallConfig?.[row]?.[col];
+
+    if (!currentCell || !targetCell) {
+        return true;
+    }
+
+    if (row === playerPos.row - 1 && col === playerPos.col) {
+        return Boolean(currentCell.up && targetCell.down);
+    }
+
+    if (row === playerPos.row + 1 && col === playerPos.col) {
+        return Boolean(currentCell.down && targetCell.up);
+    }
+
+    if (row === playerPos.row && col === playerPos.col - 1) {
+        return Boolean(currentCell.left && targetCell.right);
+    }
+
+    if (row === playerPos.row && col === playerPos.col + 1) {
+        return Boolean(currentCell.right && targetCell.left);
+    }
+
+    return false;
+}
+
+function selectCell(row, col) {
+    if (!isValidCell(row, col)) {
+        return false;
+    }
+
+    selectedCellPos.row = row;
+    selectedCellPos.col = col;
+    updateSelectedCellDisplay();
+    return true;
+}
 
 function byteToCells(byte) {
     if (typeof byte !== 'number' || byte < 0 || byte > 255) {
@@ -76,7 +127,7 @@ function renderMazeWithBorders(mazeData) {
             }
 
             cell.addEventListener('click', () => {
-                movePlayerTo(i, j);
+                selectCell(i, j);
             });
 
             mazeScreen.appendChild(cell);
@@ -85,6 +136,7 @@ function renderMazeWithBorders(mazeData) {
 
     // Set initial player position
     updatePlayerDisplay();
+    updateSelectedCellDisplay();
 
     // Stop idle animation when maze is loaded
     stopIdleAnimation();
@@ -131,9 +183,9 @@ function initializeMazeGrid() {
             cell.id = `cell-${i}-${j}`;
             cell.dataset.row = i;
             cell.dataset.col = j;
-            
-            cell.addEventListener('click', function() {
-                movePlayerTo(i, j);
+
+            cell.addEventListener('click', () => {
+                selectCell(i, j);
             });
             
             mazeScreen.appendChild(cell);
@@ -141,14 +193,20 @@ function initializeMazeGrid() {
     }
     
     updatePlayerDisplay();
+    updateSelectedCellDisplay();
     
     startIdleAnimation();
 }
 
 function movePlayerTo(row, col) {
+    if (!isValidCell(row, col)) {
+        return false;
+    }
+
     playerPos.row = row;
     playerPos.col = col;
     updatePlayerDisplay();
+    return true;
 }
 
 function movePlayerDirection(direction) {
@@ -169,23 +227,41 @@ function movePlayerDirection(direction) {
             newCol = Math.min(7, playerPos.col + 1);
             break;
     }
-    
+
+    if (newRow === playerPos.row && newCol === playerPos.col) {
+        return;
+    }
+
+    if (!canMoveToCell(newRow, newCol)) {
+        if (typeof logSerialOutput === 'function') {
+            logSerialOutput(`✗ Move blocked by wall at ${playerPos.row},${playerPos.col}`);
+        }
+        return;
+    }
+
     movePlayerTo(newRow, newCol);
 }
 
 // Rotate selected cell
 function rotateCell(row, col) {
     if (!Array.isArray(mazeWallConfig) || mazeWallConfig.length !== 8) {
-        return;
+        return false;
     }
 
-    if (row < 0 || row > 7 || col < 0 || col > 7) {
-        return;
+    if (!isValidCell(row, col)) {
+        return false;
+    }
+
+    if (isPlayerAtCell(row, col)) {
+        if (typeof logSerialOutput === 'function') {
+            logSerialOutput(`✗ Cannot rotate occupied cell at ${row},${col}`);
+        }
+        return false;
     }
 
     const cell = mazeWallConfig[row]?.[col];
     if (!cell) {
-        return;
+        return false;
     }
 
     const rotated = {
@@ -199,6 +275,7 @@ function rotateCell(row, col) {
     checkNeighborWalls(row, col);
 
     renderMazeWithBorders(mazeWallConfig);
+    return true;
 }
 
 function checkNeighborWalls(row, col) {
@@ -235,6 +312,17 @@ function updatePlayerDisplay() {
     const playerCell = document.getElementById(`cell-${playerPos.row}-${playerPos.col}`);
     if (playerCell) {
         playerCell.classList.add('player');
+    }
+}
+
+function updateSelectedCellDisplay() {
+    document.querySelectorAll('.maze_cell').forEach(cell => {
+        cell.classList.remove('selected');
+    });
+
+    const selectedCell = document.getElementById(`cell-${selectedCellPos.row}-${selectedCellPos.col}`);
+    if (selectedCell) {
+        selectedCell.classList.add('selected');
     }
 }
 

@@ -242,8 +242,10 @@ async function interactionWithMatrix(command) {
         return;
     }
     if (command === 'rotate') {
-        rotateCell(playerPos.row, playerPos.col);
-        logSerialOutput('↻ Rotated cell at ' + playerPos.row + ',' + playerPos.col);
+        const rotated = rotateCell(selectedCellPos.row, selectedCellPos.col);
+        if (rotated) {
+            logSerialOutput('↻ Rotated cell at ' + selectedCellPos.row + ',' + selectedCellPos.col);
+        }
         return;
     }
 

@@ -59,6 +59,7 @@
     cursor: pointer;
     transition: background 0.2s;
     box-sizing: border-box;
+    position: relative;
 }
 
 .maze_cell:hover {
@@ -75,6 +76,21 @@
 
 .maze_cell.player {
     background: #ffffcc;
+}
+
+.maze_cell.player::after {
+    content: '';
+    position: absolute;
+    inset: 22%;
+    border-radius: 50%;
+    background: #f16d2f;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.85);
+    z-index: 1;
+}
+
+.maze_cell.selected {
+    outline: 3px solid #f16d2f;
+    outline-offset: -3px;
 }
 
 .maze_cell.goal {
