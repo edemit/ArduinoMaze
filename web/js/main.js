@@ -241,6 +241,11 @@ async function interactionWithMatrix(command) {
         movePlayerDirection(command);
         return;
     }
+    if (command === 'rotate') {
+        rotateCell(playerPos.row, playerPos.col);
+        logSerialOutput('↻ Rotated cell at ' + playerPos.row + ',' + playerPos.col);
+        return;
+    }
 
     if (!isSerialConnected || !serialConnection) {
         logSerialOutput('✗ Error: Serial device not connected');
