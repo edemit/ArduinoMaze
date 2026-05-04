@@ -100,7 +100,7 @@ body::before {
     display: grid;
     grid-template-columns: repeat(8, 1fr);
     grid-template-rows: repeat(8, 1fr);
-    background: #08110b;
+    background: #142117;
     padding: 8px;
     border-radius: 0;
     aspect-ratio: 1;

@@ -102,14 +102,15 @@ function renderMazeWithBorders(mazeData) {
             cell.id = `cell-${i}-${j}`;
             cell.dataset.row = i;
             cell.dataset.col = j;
+            cell.style.margin = '2px';
 
             const wallConfig = mazeData[i][j];
             const wallBorders = [];
             
-            if (!wallConfig.up) wallBorders.push('inset 0 1px 0 rgb(72, 72, 72)');
-            if (!wallConfig.left) wallBorders.push('inset 1px 0 0 rgb(72, 72, 72)');
-            if (j === 7 && !wallConfig.right) wallBorders.push('inset -1px 0 0 rgb(72, 72, 72)');
-            if (i === 7 && !wallConfig.down) wallBorders.push('inset 0 -1px 0 rgb(72, 72, 72)');
+            if (!wallConfig.up) wallBorders.push('inset 0 3px 0 rgb(21, 146, 42)');
+            if (!wallConfig.left) wallBorders.push('inset 3px 0 0 rgb(21, 146, 42)');
+            if (j === 7 && !wallConfig.right) wallBorders.push('inset -3px 0 0 rgb(21, 146, 42)');
+            if (i === 7 && !wallConfig.down) wallBorders.push('inset 0 -3px 0 rgb(21, 146, 42)');
 
             if (wallBorders.length > 0) {
                 cell.style.boxShadow = wallBorders.join(', ');
@@ -177,6 +178,7 @@ function initializeMazeGrid() {
             cell.id = `cell-${i}-${j}`;
             cell.dataset.row = i;
             cell.dataset.col = j;
+            cell.style.margin = '2px';
             // Click selects the cell for rotation/actions (does not move the player)
             cell.addEventListener('click', function() {
                 setSelectedCell(i, j);
