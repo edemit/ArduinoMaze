@@ -236,9 +236,61 @@ window.addEventListener('beforeunload', () => {
     }
 });
 
+function movePlayerByCommand(direction) {
+    let newRow = playerPos.row;
+    let newCol = playerPos.col;
+
+    switch (direction) {
+        case 'up':
+            newRow = Math.max(0, playerPos.row - 1);
+            break;
+        case 'down':
+            newRow = Math.min(7, playerPos.row + 1);
+            break;
+        case 'left':
+            newCol = Math.max(0, playerPos.col - 1);
+            break;
+        case 'right':
+            newCol = Math.min(7, playerPos.col + 1);
+            break;
+        default:
+            return false;
+    }
+
+    if (newRow === playerPos.row && newCol === playerPos.col) {
+        return false;
+    }
+
+    if (!canMoveToCell(newRow, newCol)) {
+        if (typeof logSerialOutput === 'function') {
+            logSerialOutput(`✗ Move blocked by wall at ${playerPos.row},${playerPos.col}`);
+        }
+        return false;
+    }
+
+    movePlayerTo(newRow, newCol);
+    return true;
+}
+
+function movePlayerUp() {
+    movePlayerByCommand('up');
+}
+
+function movePlayerDown() {
+    movePlayerByCommand('down');
+}
+
+function movePlayerLeft() {
+    movePlayerByCommand('left');
+}
+
+function movePlayerRight() {
+    movePlayerByCommand('right');
+}
+
 async function interactionWithMatrix(command) {
     if (['up', 'down', 'left', 'right'].includes(command)) {
-        movePlayerDirection(command);
+        movePlayerByCommand(command);
         return;
     }
     if (command === 'rotate') {
@@ -279,8 +331,6 @@ async function interactionWithMatrix(command) {
         console.error('Serial send error:', error);
     }
 }
-
-
 function toggleDebugMode() {
     debugMode = !debugMode;
     const debugPanel = document.getElementById('debug-panel');

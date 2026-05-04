@@ -223,39 +223,6 @@ function updateSelectedDisplay() {
     }
 }
 
-function movePlayerDirection(direction) {
-    let newRow = playerPos.row;
-    let newCol = playerPos.col;
-    
-    switch(direction) {
-        case 'up':
-            newRow = Math.max(0, playerPos.row - 1);
-            break;
-        case 'down':
-            newRow = Math.min(7, playerPos.row + 1);
-            break;
-        case 'left':
-            newCol = Math.max(0, playerPos.col - 1);
-            break;
-        case 'right':
-            newCol = Math.min(7, playerPos.col + 1);
-            break;
-    }
-
-    if (newRow === playerPos.row && newCol === playerPos.col) {
-        return;
-    }
-
-    if (!canMoveToCell(newRow, newCol)) {
-        if (typeof logSerialOutput === 'function') {
-            logSerialOutput(`✗ Move blocked by wall at ${playerPos.row},${playerPos.col}`);
-        }
-        return;
-    }
-
-    movePlayerTo(newRow, newCol);
-}
-
 // Rotate selected cell
 function rotateCell(row, col) {
     if (!Array.isArray(mazeWallConfig) || mazeWallConfig.length !== 8) {
