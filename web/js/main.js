@@ -3,6 +3,7 @@ let isSerialConnected = false;
 let pollInterval = null;
 let debugMode = false;
 let serialBypass = false;
+let commandeQueue = [];
 
 // Default port for ESP32-C3 via USB
 const DEFAULT_PORT = '/dev/ttyUSB0';
@@ -128,7 +129,56 @@ async function startSerialPolling() {
                 const result = await response.json();
                 if (result.success && result.data && result.data.length > lastDataLength) {
                     for (let i = lastDataLength; i < result.data.length; i++) {
-                        logSerialOutput('📥 ' + result.data[i].message);
+                        const message = result.data[i].message.trim();
+                        logSerialOutput('📥 ' + message);
+                        
+                        
+                        if(!mazeBuilded){
+                            // Try to parse as maze data byte
+                            const byteValue = parseInt(message, 10);
+                            if (!isNaN(byteValue) && byteValue >= 0 && byteValue <= 255) {
+                                mazeDataArray.push(byteValue);
+                                logSerialOutput(mazeDataArray.length);
+                                if (mazeDataArray.length === 32) {
+                                    try {
+                                        const mazeData = buildMazeFromData(mazeDataArray);
+                                        renderMazeWithBorders(mazeData);
+                                        mazeBuilded = true; // Set flag to indicate maze has been built
+                                        logSerialOutput('✓ Maze built from serial data');
+                                        mazeDataArray = []; // Reset for next maze
+                                    } catch (error) {
+                                        logSerialOutput('✗ Error building maze: ' + error.message);
+                                        mazeDataArray = []; // Reset on error
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            message.split('\n').forEach(line => {
+                                const mArray = line.split("/");
+                                logSerialOutput("command input: " + line.trim());
+                                switch (mArray[0]) {
+                                    case "move":
+                                        movePlayerByCommand(mArray[1]);
+                                        break;
+                                    case "rotate":
+                                        c=commandeQueue.pop(0);
+                                        if (mArray[1]===200){
+                                            const rotated = rotateCell(c[0], c[1]);
+                                            if (rotated) {
+                                                logSerialOutput('↻ Rotated cell at ' + c[0] + ',' + c[1]);
+                                            }
+                                        }else{
+                                            logSerialOutput('✗ Rotate command failed for cell ' + c[0] + ',' + c[1]);
+                                        }
+                                        break;
+                                }
+                                if (line.trim()) {
+                                    logSerialOutput('📥 ' + line.trim());
+                                }
+                            });
+
+                        }
                     }
                     lastDataLength = result.data.length;
                 }
@@ -149,6 +199,7 @@ async function startSerialPolling() {
         }
     }, 500);
 }
+  
 
 // Send message to serial device
 async function sendSerialMessage() {
@@ -329,11 +380,8 @@ async function interactionWithMatrix(command) {
     if (command === 'rotate') {
         const targetRow = (typeof selectedPos !== 'undefined' && selectedPos) ? selectedPos.row : playerPos.row;
         const targetCol = (typeof selectedPos !== 'undefined' && selectedPos) ? selectedPos.col : playerPos.col;
-        const rotated = rotateCell(targetRow, targetCol);
-        if (rotated) {
-            logSerialOutput('↻ Rotated cell at ' + targetRow + ',' + targetCol);
-        }
-        return;
+        commandeQueue.push([targetRow, targetCol]);
+        command = 'rotate/'+((targetCol)+(targetRow*8)); // Send rotate command to Arduino
     }
 
     if (!isSerialConnected || !serialConnection) {

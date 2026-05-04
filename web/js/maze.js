@@ -6,6 +6,11 @@ let animationFrame = 0;
 let mazeWallConfig = []; // Store wall configuration for each cell
 let selectedPos = null; // currently selected cell for actions (row,col)
 
+
+let mazeBuilded = false; // Flag to indicate if the maze has been built
+let mazeDataArray = []; // Temporary array to hold incoming maze data bytes
+
+
 function isPlayerAtCell(row, col) {
     return playerPos.row === row && playerPos.col === col;
 }
@@ -54,12 +59,12 @@ function byteToCells(byte) {
     const upperNibble = (byte >> 4) & 0x0F;
 
     const decodeNibble = (nibble) => ({
-        right: Boolean(nibble & 0x08),
+        left: Boolean(nibble & 0x08),
         up:    Boolean(nibble & 0x04),
-        left:  Boolean(nibble & 0x02),
+        right: Boolean(nibble & 0x02),
         down:  Boolean(nibble & 0x01)
     });
-
+    
     return [decodeNibble(upperNibble), decodeNibble(lowerNibble)];
 }
 
