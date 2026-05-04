@@ -1,4 +1,3 @@
-let maze = [[]]; // array of arrays in bytes 
 let playerPos = { row: 0, col: 0 }; // Track player position
 
 let idleAnimationInterval = null;
@@ -25,26 +24,24 @@ function canMoveToCell(row, col) {
     }
 
     const currentCell = mazeWallConfig?.[playerPos.row]?.[playerPos.col];
-    const targetCell = mazeWallConfig?.[row]?.[col];
-
-    if (!currentCell || !targetCell) {
+    if (!currentCell) {
         return true;
     }
 
     if (row === playerPos.row - 1 && col === playerPos.col) {
-        return Boolean(currentCell.up && targetCell.down);
+        return Boolean(currentCell.up);
     }
 
     if (row === playerPos.row + 1 && col === playerPos.col) {
-        return Boolean(currentCell.down && targetCell.up);
+        return Boolean(currentCell.down);
     }
 
     if (row === playerPos.row && col === playerPos.col - 1) {
-        return Boolean(currentCell.left && targetCell.right);
+        return Boolean(currentCell.left);
     }
 
     if (row === playerPos.row && col === playerPos.col + 1) {
-        return Boolean(currentCell.right && targetCell.left);
+        return Boolean(currentCell.right);
     }
 
     return false;
@@ -154,19 +151,10 @@ function checkMazeWalls(mazeData) {
                 continue;
             }
 
-            if (col < 7 && mazeData[row][col + 1]) {
-                const rightNeighbor = mazeData[row][col + 1];
-                const sharedOpen = Boolean(cell.right && rightNeighbor.left);
-                cell.right = sharedOpen;
-                rightNeighbor.left = sharedOpen;
-            }
-
-            if (row < 7 && mazeData[row + 1][col]) {
-                const bottomNeighbor = mazeData[row + 1][col];
-                const sharedOpen = Boolean(cell.down && bottomNeighbor.up);
-                cell.down = sharedOpen;
-                bottomNeighbor.up = sharedOpen;
-            }
+            cell.up = Boolean(cell.up);
+            cell.down = Boolean(cell.down);
+            cell.left = Boolean(cell.left);
+            cell.right = Boolean(cell.right);
         }
     }
 }
@@ -267,34 +255,9 @@ function rotateCell(row, col) {
     };
 
     mazeWallConfig[row][col] = rotated;
-    checkNeighborWalls(row, col);
-
+    // Keep directional/asymmetric walls as-is; do not force neighbor symmetry.
     renderMazeWithBorders(mazeWallConfig);
     return true;
-}
-
-function checkNeighborWalls(row, col) {
-    const cell = mazeWallConfig[row][col];
-
-    // Up neighbor
-    if (row > 0) {
-        mazeWallConfig[row - 1][col].down = cell.up;
-    }
-
-    // Right neighbor
-    if (col < 7) {
-        mazeWallConfig[row][col + 1].left = cell.right;
-    }
-
-    // Down neighbor
-    if (row < 7) {
-        mazeWallConfig[row + 1][col].up = cell.down;
-    }
-
-    // Left neighbor
-    if (col > 0) {
-        mazeWallConfig[row][col - 1].right = cell.left;
-    }
 }
 
 // Update player display on grid
