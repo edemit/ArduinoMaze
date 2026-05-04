@@ -441,6 +441,10 @@ function toggleSerialBypass() {
     }
 }
 
+function finishMaze() {
+    alert('Felicitations! Tu as gagné! 🎉');
+    }
+
 function initDebugMode() {
     // Keyboard shortcut: Ctrl+Shift+D to show debug button
     document.addEventListener('keydown', (event) => {

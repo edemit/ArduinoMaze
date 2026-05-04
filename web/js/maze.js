@@ -106,10 +106,10 @@ function renderMazeWithBorders(mazeData) {
             const wallConfig = mazeData[i][j];
             const wallBorders = [];
             
-            if (!wallConfig.up) wallBorders.push('inset 0 1px 0 #333');
-            if (!wallConfig.left) wallBorders.push('inset 1px 0 0 #333');
-            if (j === 7 && !wallConfig.right) wallBorders.push('inset -1px 0 0 #333');
-            if (i === 7 && !wallConfig.down) wallBorders.push('inset 0 -1px 0 #333');
+            if (!wallConfig.up) wallBorders.push('inset 0 1px 0 rgb(72, 72, 72)');
+            if (!wallConfig.left) wallBorders.push('inset 1px 0 0 rgb(72, 72, 72)');
+            if (j === 7 && !wallConfig.right) wallBorders.push('inset -1px 0 0 rgb(72, 72, 72)');
+            if (i === 7 && !wallConfig.down) wallBorders.push('inset 0 -1px 0 rgb(72, 72, 72)');
 
             if (wallBorders.length > 0) {
                 cell.style.boxShadow = wallBorders.join(', ');
@@ -339,7 +339,7 @@ function stopIdleAnimation() {
         updatePlayerDisplay();
         
         document.querySelectorAll('.maze_cell.wall').forEach(cell => {
-            cell.style.background = '#000';
+            cell.style.background = '#4a4a4a';
         });
         document.querySelectorAll('.maze_cell.goal').forEach(cell => {
             cell.style.background = '#4CAF50';

@@ -1,148 +1,368 @@
+body {
+    margin: 0;
+    min-height: 100vh;
+    padding: 28px;
+    color: var(--fg-main);
+    background:
+        radial-gradient(circle at 20% 10%, rgba(50, 130, 75, 0.14), transparent 42%),
+        radial-gradient(circle at 85% 85%, rgba(40, 100, 60, 0.12), transparent 40%),
+        var(--bg-main);
+    font-family: "Lucida Console", "Courier New", monospace;
+    letter-spacing: 0.03em;
+    text-shadow: 0 0 8px rgba(110, 255, 150, 0.35);
+    
+    --bg-main: #040b06;
+    --bg-panel: #0b1a10;
+    --bg-panel-2: #102717;
+    --line: #2f7f46;
+    --line-dim: #1f4f2e;
+    --fg-main: #9cffae;
+    --fg-dim: #5ca16d;
+    --warning: #ffd85e;
+    --danger: #ff6f74;
+    --accent: #8fffc0;
+    --blue-accent: #53d8ff;
+}
+
+a, li, button, ul, p, div, h1, h2, h3, h4, h5, h6 {
+    box-sizing: border-box;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+        to bottom,
+        rgba(180, 255, 200, 0.06) 0,
+        rgba(180, 255, 200, 0.06) 1px,
+        transparent 1px,
+        transparent 3px
+    );
+    mix-blend-mode: screen;
+    opacity: 0.35;
+    z-index: 0;
+}
+
 .header {
-    margin-bottom: 5px;
-    font-size: 32px;
-    border-bottom: 1px solid #000000;
+    position: relative;
+    z-index: 1;
+    margin: 0 0 18px;
+    padding: 10px 12px;
+    font-size: clamp(24px, 4vw, 36px);
+    text-transform: uppercase;
+    border: 2px solid var(--line);
+    background: linear-gradient(180deg, rgba(18, 45, 28, 0.95), rgba(8, 18, 12, 0.95));
+    box-shadow: inset 0 0 18px rgba(100, 255, 145, 0.12), 0 0 0 1px #000;
+}
+
+.header::before {
+    content: ">>> ";
+    color: var(--warning);
+}
+
+.header::after {
+    content: " _";
+    color: var(--accent);
+    animation: cursorBlink 1s steps(1, end) infinite;
+}
+
+.game {
+    position: relative;
+    z-index: 1;
 }
 
 .game .wrapper {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(320px, 460px) minmax(320px, 460px);
+    gap: 22px;
     justify-content: center;
+    align-items: start;
 }
 
-
-
-.game .connectionForm {
-    display: flex;
-    flex-wrap: wrap;
-    margin-right: 20px;
-    width: 400px;
-}
-
-.game .connectionForm input {
+.maze {
+    position: relative;
     width: 100%;
+    padding: 14px;
+    border: 2px solid var(--line);
+    background: linear-gradient(180deg, rgba(12, 29, 18, 0.95), rgba(7, 15, 10, 0.95));
+    box-shadow: inset 0 0 25px rgba(60, 255, 130, 0.08), 0 0 0 1px #000;
 }
 
-.game .maze_screen{
-    height: 400px;
-    width: 400px;
-    border: 1px solid #000000;
-    margin-right: 20px;
-}
-
-.game .maze_controls{
-    display: flex;
-    height: 100px;
-    width: 400px;
-    border: 1px solid #000000;
-    border-top: 1px none;
-}
-
-.maze_button {
-    width: 20%;
-    font-size: 32px;
-    font-weight: bold;
+.game .maze_screen {
+    width: 100%;
+    margin-right: 0;
+    border: 2px solid var(--line);
 }
 
 .maze_screen {
     display: grid;
     grid-template-columns: repeat(8, 1fr);
     grid-template-rows: repeat(8, 1fr);
-    background: #333;
-    padding: 10px;
-    border-radius: 4px;
+    background: #08110b;
+    padding: 8px;
+    border-radius: 0;
     aspect-ratio: 1;
     gap: 0;
 }
 
 .maze_cell {
-    background: #ffffff;
+    background: #192f1f;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.12s linear;
     box-sizing: border-box;
     position: relative;
+    border: 1px solid rgba(24, 52, 31, 0.4);
 }
 
 .maze_cell:hover {
-    background: #f0f0f0;
+    background: #2a4a32;
 }
 
 .maze_cell.wall {
-    background: #000;
+    background: #4a4a4a;
 }
 
 .maze_cell.path {
-    background: #fff;
+    background: #1f3f29;
 }
 
 .maze_cell.player::after {
-    content: '';
+    content: "@";
     position: absolute;
-    inset: 22%;
-    border-radius: 50%;
-    background: #f16d2f;
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.85);
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -52%);
+    font-size: clamp(14px, 2vw, 18px);
+    color: var(--warning);
+    text-shadow: 0 0 10px rgba(255, 214, 96, 0.9);
     z-index: 1;
+    font-weight: 700;
 }
 
 .maze_cell.goal {
-    background: #4CAF50;
+    background: #194b2c;
 }
 
-/* Debug Panel Styles */
+.game .maze_controls {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    height: auto;
+    width: 100%;
+    margin-top: 10px;
+    padding: 8px;
+    border: 2px solid var(--line);
+    border-top: none;
+    background: #08130d;
+}
+
+.maze_button {
+    width: 100%;
+    min-height: 56px;
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--fg-main);
+    background: linear-gradient(180deg, #1d4b2c, #102a19);
+    border: 2px solid var(--line);
+    cursor: pointer;
+    text-shadow: 0 0 8px rgba(120, 255, 170, 0.5);
+}
+
+.maze_button:hover {
+    background: linear-gradient(180deg, #275f38, #15311e);
+}
+
+.maze_button:active {
+    transform: translateY(1px);
+}
+
+.connection {
+    width: 100%;
+    padding: 14px;
+    border: 2px solid var(--line);
+    background: linear-gradient(180deg, rgba(12, 29, 18, 0.95), rgba(7, 15, 10, 0.95));
+    box-shadow: inset 0 0 25px rgba(60, 255, 130, 0.08), 0 0 0 1px #000;
+}
+
+.connection .title {
+    margin: 0 0 14px;
+    font-size: 24px;
+    text-transform: uppercase;
+}
+
+.webserial-section h3 {
+    margin: 0 0 10px;
+    color: var(--blue-accent);
+    text-transform: uppercase;
+    font-size: 15px;
+}
+
+.connection-status {
+    margin: 10px 0;
+    padding: 10px;
+    background: #2e1218;
+    border-left: 4px solid var(--danger);
+    border: 1px solid var(--line-dim);
+}
+
+.game .connectionForm {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-right: 0;
+    width: 100%;
+}
+
+.connectionForm p {
+    width: 100%;
+    margin: 6px 0 0;
+    color: var(--fg-dim);
+    font-size: 13px;
+    text-transform: uppercase;
+}
+
+.game .connectionForm input {
+    width: 100%;
+    font-family: inherit;
+}
+
+.connectionForm input[type="number"],
+.connectionForm input[type="text"],
+.debug-section textarea {
+    padding: 10px;
+    border: 1px solid var(--line);
+    background: #07120b;
+    color: var(--fg-main);
+    outline: none;
+}
+
+.connectionForm input[type="number"]:focus,
+.connectionForm input[type="text"]:focus,
+.debug-section textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(145, 255, 195, 0.18);
+}
+
+.action-button,
+.debug-action,
+.debug-close-btn,
+.debug-toggle-btn {
+    border: 2px solid var(--line);
+    cursor: pointer;
+    color: #e9ffee;
+    background: linear-gradient(180deg, #1d4b2c, #102a19);
+    font-family: inherit;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.action-button {
+    padding: 10px;
+}
+
+.action-button.connect,
+.debug-action.load {
+    background: linear-gradient(180deg, #246a36, #153b20);
+}
+
+.action-button.disconnect {
+    background: linear-gradient(180deg, #8a2f37, #4b1a1e);
+    border-color: #94444f;
+}
+
+.action-button.send,
+.debug-action.generate {
+    background: linear-gradient(180deg, #1e5363, #123039);
+    border-color: #2a6f84;
+}
+
+.action-button.clear {
+    background: linear-gradient(180deg, #776024, #473916);
+    border-color: #9a7c2d;
+}
+
+.action-button:hover,
+.debug-action:hover,
+.debug-close-btn:hover,
+.debug-toggle-btn:hover {
+    filter: brightness(1.08);
+}
+
+.serial-log {
+    border: 1px solid var(--line);
+    padding: 10px;
+    margin-top: 10px;
+    height: 200px;
+    overflow-y: auto;
+    background: #050f08;
+    font-family: "Lucida Console", "Courier New", monospace;
+    font-size: 12px;
+    color: #b1ffbf;
+}
+
 .debug-panel {
     position: fixed;
     bottom: 0;
     right: 0;
-    width: 450px;
+    width: min(100%, 500px);
     max-height: 90vh;
-    background: #ffffff;
-    border: 3px solid #ff9800;
-    border-radius: 8px 8px 0 0;
-    box-shadow: -2px -2px 10px rgba(0,0,0,0.2);
+    background: linear-gradient(180deg, #102818, #0a1710);
+    border: 2px solid #5ea06f;
+    border-radius: 0;
+    box-shadow: 0 0 18px rgba(72, 190, 103, 0.2);
     z-index: 1001;
     overflow-y: auto;
-    animation: slideUp 0.3s ease-out;
+    animation: slideUp 0.28s ease-out;
 }
 
 @keyframes slideUp {
     from {
         transform: translateY(100%);
     }
+
     to {
         transform: translateY(0);
     }
 }
 
+@keyframes cursorBlink {
+    0%,
+    49% {
+        opacity: 1;
+    }
+
+    50%,
+    100% {
+        opacity: 0;
+    }
+}
+
 .debug-container {
-    padding: 20px;
+    padding: 18px;
 }
 
 .debug-container h2 {
     margin-top: 0;
-    color: #ff9800;
+    color: var(--warning);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    text-transform: uppercase;
 }
 
 .debug-close-btn {
-    background: #f44336;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    cursor: pointer;
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-.debug-close-btn:hover {
-    background: #d32f2f;
+    padding: 6px 10px;
+    background: linear-gradient(180deg, #8a2f37, #4b1a1e);
+    border-color: #94444f;
+    font-size: 13px;
 }
 
 .debug-section {
-    margin-top: 20px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #eee;
+    margin-top: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px dashed #2f7041;
 }
 
 .debug-section:last-child {
@@ -151,33 +371,22 @@
 
 .debug-section h3 {
     margin-top: 0;
-    color: #333;
-    font-size: 16px;
+    color: var(--blue-accent);
+    font-size: 14px;
+    text-transform: uppercase;
 }
 
 .debug-section textarea {
     width: 100%;
-    padding: 10px;
-    font-family: 'Courier New', monospace;
-    font-size: 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
     resize: vertical;
-    box-sizing: border-box;
+    min-height: 90px;
 }
 
 .debug-section button {
     width: 100%;
     padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: opacity 0.2s;
-}
-
-.debug-section button:hover {
-    opacity: 0.8;
+    font-weight: 700;
+    margin-top: 10px;
 }
 
 .debug-section label {
@@ -192,41 +401,48 @@
     cursor: pointer;
     width: 18px;
     height: 18px;
+    accent-color: #3fcf65;
 }
 
+.debug-cell-info,
 #debug-cell-info {
     white-space: pre-wrap;
     word-wrap: break-word;
-    color: #666;
+    color: #98dca9;
+    background: #07120b;
+    padding: 10px;
+    margin-top: 10px;
+    min-height: 60px;
+    border: 1px solid var(--line);
+    font-size: 12px;
 }
 
-@media (max-width: 768px) {
-    .debug-panel {
-        width: 100%;
-        bottom: 0;
-        right: 0;
-    }
+.debug-toggle-btn {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 52px;
+    height: 52px;
+    padding: 0;
+    border-radius: 0;
+    background: linear-gradient(180deg, #776024, #473916);
+    border-color: #9a7c2d;
+    font-size: 20px;
+    z-index: 1000;
 }
 
-/* Maze Container - position relative for overlay */
-.maze {
-    position: relative;
-    display: inline-block;
-}
-
-/* Overlay grid for selection highlight */
 .maze_overlay {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: 14px;
+    left: 14px;
+    width: calc(100% - 28px);
+    height: calc(100% - 90px);
     display: grid;
     grid-template-columns: repeat(8, 1fr);
     grid-template-rows: repeat(8, 1fr);
     background: transparent;
-    padding: 10px;
-    border-radius: 4px;
+    padding: 8px;
     aspect-ratio: 1;
     gap: 0;
     pointer-events: none;
@@ -243,5 +459,24 @@
     position: relative;
     z-index: 11;
     box-sizing: border-box;
-    border: 3px solid #f16d2f;
+    border: 2px solid var(--warning);
+    box-shadow: inset 0 0 0 1px rgba(255, 216, 94, 0.4);
+}
+
+@media (max-width: 980px) {
+    body {
+        padding: 14px;
+    }
+
+    .game .wrapper {
+        grid-template-columns: 1fr;
+        max-width: 680px;
+        margin: 0 auto;
+    }
+
+    .debug-panel {
+        width: 100%;
+        bottom: 0;
+        right: 0;
+    }
 }
