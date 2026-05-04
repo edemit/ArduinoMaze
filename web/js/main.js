@@ -185,7 +185,7 @@ async function startSerialPolling() {
 
                                 case "rotate":
                                     clearRotateInProgress();// Allow next rotate command
-                                    if (mArray[1] == "200") {
+                                    if (mArray[1] === "200") {
                                         const rotated = rotateCell(commandPos[0], commandPos[1]);
                                         if (rotated) {
                                             logSerialOutput(`↻ Rotated cell at ${commandPos[0]},${commandPos[1]}`);
