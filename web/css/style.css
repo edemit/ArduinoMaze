@@ -88,11 +88,6 @@
     z-index: 1;
 }
 
-.maze_cell.selected {
-    outline: 3px solid #f16d2f;
-    outline-offset: -3px;
-}
-
 .maze_cell.goal {
     background: #4CAF50;
 }

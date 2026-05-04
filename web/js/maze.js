@@ -1,10 +1,10 @@
 let maze = [[]]; // array of arrays in bytes 
 let playerPos = { row: 0, col: 0 }; // Track player position
-let selectedCellPos = { row: 0, col: 0 }; // Track selected cell for rotation
 
 let idleAnimationInterval = null;
 let animationFrame = 0;
 let mazeWallConfig = []; // Store wall configuration for each cell
+let selectedPos = null; // currently selected cell for actions (row,col)
 
 function isPlayerAtCell(row, col) {
     return playerPos.row === row && playerPos.col === col;
@@ -45,20 +45,6 @@ function canMoveToCell(row, col) {
     return false;
 }
 
-function selectCell(row, col) {
-    if (!isValidCell(row, col)) {
-        return false;
-    }
-
-    selectedCellPos.row = row;
-    selectedCellPos.col = col;
-    updateSelectedCellDisplay();
-    return true;
-}
-
-let mazeBuilded = false; // Flag to indicate if the maze has been built
-let mazeDataArray = []; // Temporary array to hold incoming maze data bytes
-
 function byteToCells(byte) {
     if (typeof byte !== 'number' || byte < 0 || byte > 255) {
         throw new Error('byte must be an integer between 0 and 255');
@@ -91,8 +77,7 @@ function buildMazeFromData(dataArray) {
         if (typeof byteValue !== 'number' || byteValue < 0 || byteValue > 255) {
             throw new Error(`Invalid byte at index ${k}: ${byteValue}`);
         }
-        // 41 = 0010 1001 que le bas qui est bon
-        // 
+
         const row = Math.floor(k / 4);
         const colLeft = (k % 4) * 2;
         const [leftCell, rightCell] = byteToCells(byteValue);
@@ -121,17 +106,18 @@ function renderMazeWithBorders(mazeData) {
             const wallConfig = mazeData[i][j];
             const wallBorders = [];
             
-            if (!wallConfig.up) wallBorders.push('inset 0 3px 0 #333');
-            if (!wallConfig.left) wallBorders.push('inset -3px 0 0 #333');
-            if (!wallConfig.right) wallBorders.push('inset 3px 0 0 #333');
-            if (!wallConfig.down) wallBorders.push('inset 0 -3px 0 #333');
+            if (!wallConfig.up) wallBorders.push('inset 0 1px 0 #333');
+            if (!wallConfig.left) wallBorders.push('inset 1px 0 0 #333');
+            if (j === 7 && !wallConfig.right) wallBorders.push('inset -1px 0 0 #333');
+            if (i === 7 && !wallConfig.down) wallBorders.push('inset 0 -1px 0 #333');
 
             if (wallBorders.length > 0) {
                 cell.style.boxShadow = wallBorders.join(', ');
             }
 
+            // Click selects the cell for rotation/actions (does not move the player)
             cell.addEventListener('click', () => {
-                selectCell(i, j);
+                setSelectedCell(i, j);
             });
 
             mazeScreen.appendChild(cell);
@@ -140,7 +126,7 @@ function renderMazeWithBorders(mazeData) {
 
     // Set initial player position
     updatePlayerDisplay();
-    updateSelectedCellDisplay();
+    updateSelectedDisplay();
 
     // Stop idle animation when maze is loaded
     stopIdleAnimation();
@@ -187,17 +173,17 @@ function initializeMazeGrid() {
             cell.id = `cell-${i}-${j}`;
             cell.dataset.row = i;
             cell.dataset.col = j;
-
-            cell.addEventListener('click', () => {
-                selectCell(i, j);
+            // Click selects the cell for rotation/actions (does not move the player)
+            cell.addEventListener('click', function() {
+                setSelectedCell(i, j);
             });
-            
+
             mazeScreen.appendChild(cell);
         }
     }
     
     updatePlayerDisplay();
-    updateSelectedCellDisplay();
+    updateSelectedDisplay();
     
     startIdleAnimation();
 }
@@ -211,6 +197,30 @@ function movePlayerTo(row, col) {
     playerPos.col = col;
     updatePlayerDisplay();
     return true;
+}
+
+function setSelectedCell(row, col) {
+    if (!isValidCell(row, col)) return false;
+    selectedPos = { row, col };
+    updateSelectedDisplay();
+    if (typeof logSerialOutput === 'function') {
+        logSerialOutput(`➤ Selected cell ${row},${col}`);
+    }
+    return true;
+}
+
+function updateSelectedDisplay() {
+    // Clear previous inline outlines
+    document.querySelectorAll('.maze_cell').forEach(cell => {
+        cell.style.outline = '';
+    });
+
+    if (!selectedPos) return;
+    const el = document.getElementById(`cell-${selectedPos.row}-${selectedPos.col}`);
+    if (el) {
+        el.style.outline = '3px solid #f16d2f';
+        el.style.outlineOffset = '0px';
+    }
 }
 
 function movePlayerDirection(direction) {
@@ -316,17 +326,6 @@ function updatePlayerDisplay() {
     const playerCell = document.getElementById(`cell-${playerPos.row}-${playerPos.col}`);
     if (playerCell) {
         playerCell.classList.add('player');
-    }
-}
-
-function updateSelectedCellDisplay() {
-    document.querySelectorAll('.maze_cell').forEach(cell => {
-        cell.classList.remove('selected');
-    });
-
-    const selectedCell = document.getElementById(`cell-${selectedCellPos.row}-${selectedCellPos.col}`);
-    if (selectedCell) {
-        selectedCell.classList.add('selected');
     }
 }
 
