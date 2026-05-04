@@ -91,6 +91,7 @@ app.post('/api/serial/connect', async (req, res) => {
                 port: serialPort,
                 parser: parser,
                 data: [],
+                nextMessageId: 1,
                 isConnected: true
             };
 
@@ -100,6 +101,7 @@ app.post('/api/serial/connect', async (req, res) => {
             parser.on('data', (line) => {
                 console.log(`[Arduino]: ${line}`);
                 serialConnections[connectionId].data.push({
+                    id: serialConnections[connectionId].nextMessageId++,
                     timestamp: Date.now(),
                     message: line
                 });
@@ -216,7 +218,7 @@ app.post('/api/serial/send', (req, res) => {
 app.get('/api/serial/read/:connectionId', (req, res) => {
     try {
         const { connectionId } = req.params;
-        const { last = 10 } = req.query;
+        const { after = 0, last = 10 } = req.query;
         
         if (!connectionId || !serialConnections[connectionId]) {
             return res.status(400).json({ 
@@ -226,11 +228,17 @@ app.get('/api/serial/read/:connectionId', (req, res) => {
         }
 
         const conn = serialConnections[connectionId];
-        const data = conn.data.slice(-parseInt(last));
+        const afterId = parseInt(after, 10);
+        const maxCount = parseInt(last, 10);
+        const newData = conn.data.filter(entry => entry.id > afterId);
+        const data = Number.isFinite(maxCount) && maxCount > 0
+            ? newData.slice(-maxCount)
+            : newData;
         
         res.json({ 
             success: true, 
             data: data,
+            latestId: conn.data.length > 0 ? conn.data[conn.data.length - 1].id : afterId,
             isConnected: conn.isConnected
         });
     } catch (error) {

@@ -3,7 +3,12 @@ let isSerialConnected = false;
 let pollInterval = null;
 let debugMode = false;
 let serialBypass = false;
-let commandeQueue = [];
+let commandPos = [0, 0];
+let rotateInProgress = false;
+let rotateTimeout = null;
+
+const ROTATE_TIMEOUT_MS = 3000; // 3 secondes max pour une réponse
+
 
 // Default port for ESP32-C3 via USB
 const DEFAULT_PORT = '/dev/ttyUSB0';
@@ -82,6 +87,7 @@ async function startWebSerialConnect() {
 
 // Disconnect from serial device
 async function startWebSerialDisconnect() {
+    clearRotateInProgress();
     try {
         if (pollInterval) {
             clearInterval(pollInterval);
@@ -116,7 +122,8 @@ async function startWebSerialDisconnect() {
 
 // Poll for data from serial device
 async function startSerialPolling() {
-    let lastDataLength = 0;
+    let lastIndex = 0; // replaces lastDataLength safely
+
     pollInterval = setInterval(async () => {
         if (!isSerialConnected || !serialConnection) return;
 
@@ -125,71 +132,86 @@ async function startSerialPolling() {
                 `http://localhost:3000/api/serial/read/${serialConnection}?last=50`
             );
 
-            if (response.ok) {
-                const result = await response.json();
-                if (result.success && result.data && result.data.length > lastDataLength) {
-                    for (let i = lastDataLength; i < result.data.length; i++) {
-                        const message = result.data[i].message.trim();
-                        logSerialOutput('📥 ' + message);
-                        
-                        
-                        if(!mazeBuilded){
-                            // Try to parse as maze data byte
-                            const byteValue = parseInt(message, 10);
-                            if (!isNaN(byteValue) && byteValue >= 0 && byteValue <= 255) {
-                                mazeDataArray.push(byteValue);
-                                logSerialOutput(mazeDataArray.length);
-                                if (mazeDataArray.length === 32) {
-                                    try {
-                                        const mazeData = buildMazeFromData(mazeDataArray);
-                                        renderMazeWithBorders(mazeData);
-                                        mazeBuilded = true; // Set flag to indicate maze has been built
-                                        logSerialOutput('✓ Maze built from serial data');
-                                        mazeDataArray = []; // Reset for next maze
-                                    } catch (error) {
-                                        logSerialOutput('✗ Error building maze: ' + error.message);
-                                        mazeDataArray = []; // Reset on error
-                                    }
+            if (!response.ok) return;
+
+            const result = await response.json();
+
+            if (result.success && result.data) {
+
+                // If buffer reset or overflow happened → reset index
+                if (result.data.length < lastIndex) {
+                    lastIndex = 0;
+                }
+                
+                for (let i = lastIndex; i < result.data.length; i++) {
+                    const message = result.data[i].message.trim();
+                    if (!message) continue;
+
+                    logSerialOutput('📥 ' + message);
+
+                    if (!mazeBuilded) {
+                        const byteValue = parseInt(message, 10);
+
+                        if (!isNaN(byteValue) && byteValue >= 0 && byteValue <= 255) {
+                            mazeDataArray.push(byteValue);
+
+                            if (mazeDataArray.length === 32) {
+                                try {
+                                    const mazeData = buildMazeFromData(mazeDataArray);
+                                    renderMazeWithBorders(mazeData);
+                                    mazeBuilded = true;
+                                    logSerialOutput('✓ Maze built from serial data');
+                                } catch (error) {
+                                    logSerialOutput('✗ Error building maze: ' + error.message);
                                 }
+                                mazeDataArray = [];
                             }
                         }
-                        else {
-                            message.split('\n').forEach(line => {
-                                const mArray = line.split("/");
-                                logSerialOutput("command input: " + line.trim());
-                                switch (mArray[0]) {
-                                    case "move":
-                                        movePlayerByCommand(mArray[1]);
-                                        break;
-                                    case "rotate":
-                                        c=commandeQueue.pop(0);
-                                        if (mArray[1]=="200"){
-                                            const rotated = rotateCell(c[0], c[1]);
-                                            if (rotated) {
-                                                logSerialOutput('↻ Rotated cell at ' + c[0] + ',' + c[1]);
-                                            }
-                                        }else{
-                                            logSerialOutput('✗ Rotate command failed for cell ' + c[0] + ',' + c[1]);
+                    } else {
+                        const lines = message.split('\n');
+                        logSerialOutput('passed message lines: ' + lines.length);
+                        lines.forEach(line => {
+                            line = line.trim();
+                            if (!line) return;
+
+                            logSerialOutput("command input: " + line);
+
+                            const mArray = line.split("/");
+
+                            switch (mArray[0]) {
+                                case "move":
+                                    movePlayerByCommand(mArray[1]);
+                                    break;
+
+                                case "rotate":
+                                    clearRotateInProgress();// Allow next rotate command
+                                    if (mArray[1] == "200") {
+                                        const rotated = rotateCell(commandPos[0], commandPos[1]);
+                                        if (rotated) {
+                                            logSerialOutput(`↻ Rotated cell at ${commandPos[0]},${commandPos[1]}`);
                                         }
-                                        break;
-                                }
-                                if (line.trim()) {
-                                    logSerialOutput('📥 ' + line.trim());
-                                }
-                            });
+                                    } else {
+                                        logSerialOutput(`✗ Rotate failed for ${commandPos[0]},${commandPos[1]}`);
+                                    }
+                                    break;
+                            }
 
-                        }
+            
+                        });
                     }
-                    lastDataLength = result.data.length;
                 }
 
-                if (!result.isConnected) {
-                    isSerialConnected = false;
-                    clearInterval(pollInterval);
-                    updateConnectionStatus(false);
-                    logSerialOutput('✗ Connection lost');
-                }
+                // Move forward in the buffer
+                lastIndex = result.data.length;
             }
+
+            if (!result.isConnected) {
+                isSerialConnected = false;
+                clearInterval(pollInterval);
+                updateConnectionStatus(false);
+                logSerialOutput('✗ Connection lost');
+            }
+
         } catch (error) {
             console.error('Serial read error:', error);
             isSerialConnected = false;
@@ -200,6 +222,29 @@ async function startSerialPolling() {
     }, 500);
 }
   
+
+function setRotateInProgress(row, col) {
+    rotateInProgress = true;
+    commandPos = [row, col];
+
+    // Timeout de sécurité : si pas de réponse, on débloque
+    if (rotateTimeout) clearTimeout(rotateTimeout);
+    rotateTimeout = setTimeout(() => {
+        if (rotateInProgress) {
+            logSerialOutput(`⚠ Rotate timeout for ${commandPos[0]},${commandPos[1]} — unlocking`);
+            rotateInProgress = false;
+            rotateTimeout = null;
+        }
+    }, ROTATE_TIMEOUT_MS);
+}
+
+function clearRotateInProgress() {
+    rotateInProgress = false;
+    if (rotateTimeout) {
+        clearTimeout(rotateTimeout);
+        rotateTimeout = null;
+    }
+}
 
 // Send message to serial device
 async function sendSerialMessage() {
@@ -378,10 +423,15 @@ async function interactionWithMatrix(command) {
         return;
     }
     if (command === 'rotate') {
-        const targetRow = (typeof selectedPos !== 'undefined' && selectedPos) ? selectedPos.row : playerPos.row;
-        const targetCol = (typeof selectedPos !== 'undefined' && selectedPos) ? selectedPos.col : playerPos.col;
-        commandeQueue.push([targetRow, targetCol]);
-        command = 'rotate/'+((targetCol)+(targetRow*8)); // Send rotate command to Arduino
+        if (rotateInProgress) {
+            logSerialOutput('⚠ Rotate already in progress, please wait...');
+            return;
+        }else{
+            const targetRow = (typeof selectedPos !== 'undefined' && selectedPos) ? selectedPos.row : playerPos.row;
+            const targetCol = (typeof selectedPos !== 'undefined' && selectedPos) ? selectedPos.col : playerPos.col;
+            setRotateInProgress(targetRow, targetCol); // ← remplace l'assignation directe
+            command = 'rotate/'+((targetCol)+(targetRow*8)); // Send rotate command to Arduino
+        }
     }
 
     if (!isSerialConnected || !serialConnection) {
