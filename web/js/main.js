@@ -272,6 +272,39 @@ function movePlayerByCommand(direction) {
     return true;
 }
 
+function moveSelectedByCommand(direction) {
+    if (!selectedPos) {
+        selectedPos = { row: 0, col: 0 };
+    }
+
+    let newRow = selectedPos.row;
+    let newCol = selectedPos.col;
+
+    switch (direction) {
+        case 'up':
+            newRow = Math.max(0, selectedPos.row - 1);
+            break;
+        case 'down':
+            newRow = Math.min(7, selectedPos.row + 1);
+            break;
+        case 'left':
+            newCol = Math.max(0, selectedPos.col - 1);
+            break;
+        case 'right':
+            newCol = Math.min(7, selectedPos.col + 1);
+            break;
+        default:
+            return false;
+    }
+
+    if (newRow === selectedPos.row && newCol === selectedPos.col) {
+        return false;
+    }
+
+    setSelectedCell(newRow, newCol);
+    return true;
+}
+
 function movePlayerUp() {
     movePlayerByCommand('up');
 }
@@ -290,7 +323,7 @@ function movePlayerRight() {
 
 async function interactionWithMatrix(command) {
     if (['up', 'down', 'left', 'right'].includes(command)) {
-        movePlayerByCommand(command);
+        moveSelectedByCommand(command);
         return;
     }
     if (command === 'rotate') {

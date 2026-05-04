@@ -124,8 +124,12 @@ function renderMazeWithBorders(mazeData) {
         }
     }
 
-    // Set initial player position
+    // Set initial player position and selector position
     updatePlayerDisplay();
+    // Initialize selector at player position if not set
+    if (!selectedPos) {
+        selectedPos = { row: playerPos.row, col: playerPos.col };
+    }
     updateSelectedDisplay();
 
     // Stop idle animation when maze is loaded
@@ -183,6 +187,10 @@ function initializeMazeGrid() {
     }
     
     updatePlayerDisplay();
+    // Initialize selector at player position if not set
+    if (!selectedPos) {
+        selectedPos = { row: playerPos.row, col: playerPos.col };
+    }
     updateSelectedDisplay();
     
     startIdleAnimation();
@@ -212,14 +220,13 @@ function setSelectedCell(row, col) {
 function updateSelectedDisplay() {
     // Clear previous inline outlines
     document.querySelectorAll('.maze_cell').forEach(cell => {
-        cell.style.outline = '';
+        cell.style.backgroundColor = '';
     });
 
     if (!selectedPos) return;
     const el = document.getElementById(`cell-${selectedPos.row}-${selectedPos.col}`);
     if (el) {
-        el.style.outline = '3px solid #f16d2f';
-        el.style.outlineOffset = '0px';
+        el.style.backgroundColor = '#fa9a6d';
     }
 }
 
