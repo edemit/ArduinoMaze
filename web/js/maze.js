@@ -114,8 +114,8 @@ function renderMazeWithBorders(mazeData) {
             
             if (!wallConfig.up) wallBorders.push('inset 0 3px 0 rgb(21, 146, 42)');
             if (!wallConfig.left) wallBorders.push('inset 3px 0 0 rgb(21, 146, 42)');
-            if (j === 7 && !wallConfig.right) wallBorders.push('inset -3px 0 0 rgb(21, 146, 42)');
-            if (i === 7 && !wallConfig.down) wallBorders.push('inset 0 -3px 0 rgb(21, 146, 42)');
+            if (!wallConfig.right) wallBorders.push('inset -3px 0 0 rgb(21, 146, 42)');
+            if (!wallConfig.down) wallBorders.push('inset 0 -3px 0 rgb(21, 146, 42)');
 
             if (wallBorders.length > 0) {
                 cell.style.boxShadow = wallBorders.join(', ');

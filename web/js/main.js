@@ -163,7 +163,7 @@ async function startSerialPolling() {
                                         break;
                                     case "rotate":
                                         c=commandeQueue.pop(0);
-                                        if (mArray[1]===200){
+                                        if (mArray[1]=="200"){
                                             const rotated = rotateCell(c[0], c[1]);
                                             if (rotated) {
                                                 logSerialOutput('↻ Rotated cell at ' + c[0] + ',' + c[1]);
