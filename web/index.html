@@ -86,5 +86,17 @@
 
     <button id="debug-toggle-btn" class="debug-toggle-btn" onclick="toggleDebugMode()" title="Debug Mode (Ctrl+Shift+D)">🐛</button>
 
+    <!-- Victory Popup -->
+    <div id="victory-popup" class="victory-popup" style="display: none;">
+        <div class="victory-container">
+            <div class="confetti-container" id="confetti-container"></div>
+            <div class="victory-content">
+                <h1 class="victory-title">Felicitations!</h1>
+                <p class="victory-subtitle">Tu as gagné! 🎉</p>
+                <button class="victory-button" onclick="closeVictoryPopup()">Continuer</button>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>

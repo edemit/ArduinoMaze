@@ -490,8 +490,54 @@ function toggleSerialBypass() {
 }
 
 function finishMaze() {
-    alert('Felicitations! Tu as gagné! 🎉');
+    showVictoryPopup();
+}
+
+function createConfetti() {
+    const container = document.getElementById('confetti-container');
+    if (!container) return;
+    
+    const confettiCount = 50;
+    for (let i = 0; i < confettiCount; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        
+        const randomX = Math.random() * 100;
+        const randomDelay = Math.random() * 0.3;
+        const randomDuration = 2.5 + Math.random() * 1.5;
+        
+        confetti.style.left = randomX + '%';
+        confetti.style.top = '-20px';
+        confetti.style.width = (5 + Math.random() * 10) + 'px';
+        confetti.style.height = confetti.style.width;
+        confetti.style.borderRadius = Math.random() > 0.5 ? '0' : '50%';
+        confetti.style.animationDelay = randomDelay + 's';
+        confetti.style.animationDuration = randomDuration + 's';
+        
+        container.appendChild(confetti);
     }
+}
+
+function showVictoryPopup() {
+    const victoryPopup = document.getElementById('victory-popup');
+    if (victoryPopup) {
+        victoryPopup.style.display = 'flex';
+        createConfetti();
+        logSerialOutput('🎉 Victoire! Vous avez gagné!');
+    }
+}
+
+function closeVictoryPopup() {
+    const victoryPopup = document.getElementById('victory-popup');
+    if (victoryPopup) {
+        victoryPopup.style.display = 'none';
+        // Clear confetti
+        const container = document.getElementById('confetti-container');
+        if (container) {
+            container.innerHTML = '';
+        }
+    }
+}
 
 function initDebugMode() {
     // Keyboard shortcut: Ctrl+Shift+D to show debug button
