@@ -122,14 +122,14 @@ async function startWebSerialDisconnect() {
 
 // Poll for data from serial device
 async function startSerialPolling() {
-    let lastIndex = 0; // replaces lastDataLength safely
+    let lastId = 0;
 
     pollInterval = setInterval(async () => {
         if (!isSerialConnected || !serialConnection) return;
 
         try {
             const response = await fetch(
-                `http://localhost:3000/api/serial/read/${serialConnection}?last=50`
+                `http://localhost:3000/api/serial/read/${serialConnection}?after=${lastId}&last=50`
             );
 
             if (!response.ok) return;
@@ -137,13 +137,7 @@ async function startSerialPolling() {
             const result = await response.json();
 
             if (result.success && result.data) {
-
-                // If buffer reset or overflow happened → reset index
-                if (result.data.length < lastIndex) {
-                    lastIndex = 0;
-                }
-                
-                for (let i = lastIndex; i < result.data.length; i++) {
+                for (let i = 0; i < result.data.length; i++) {
                     const message = result.data[i].message.trim();
                     if (!message) continue;
 
@@ -169,7 +163,6 @@ async function startSerialPolling() {
                         }
                     } else {
                         const lines = message.split('\n');
-                        logSerialOutput('passed message lines: ' + lines.length);
                         lines.forEach(line => {
                             line = line.trim();
                             if (!line) return;
@@ -184,25 +177,31 @@ async function startSerialPolling() {
                                     break;
 
                                 case "rotate":
-                                    clearRotateInProgress();// Allow next rotate command
+                                    const targetRow = commandPos[0];
+                                    const targetCol = commandPos[1];
+                                    clearRotateInProgress();
                                     if (mArray[1] === "200") {
-                                        const rotated = rotateCell(commandPos[0], commandPos[1]);
+                                        const rotated = rotateCell(targetRow, targetCol);
                                         if (rotated) {
-                                            logSerialOutput(`↻ Rotated cell at ${commandPos[0]},${commandPos[1]}`);
+                                            logSerialOutput(`↻ Rotated cell at ${targetRow},${targetCol}`);
                                         }
                                     } else {
-                                        logSerialOutput(`✗ Rotate failed for ${commandPos[0]},${commandPos[1]}`);
+                                        logSerialOutput(`✗ Rotate failed for ${targetRow},${targetCol}`);
                                     }
                                     break;
+                                case "fin":
+                                    finishMaze();
+                                    break;
+                                default:
+                                    logSerialOutput(`⚠ Unknown command: ${line}`);
                             }
-
-            
                         });
                     }
                 }
 
-                // Move forward in the buffer
-                lastIndex = result.data.length;
+                if (result.latestId) {
+                    lastId = result.latestId;
+                }
             }
 
             if (!result.isConnected) {
@@ -221,7 +220,6 @@ async function startSerialPolling() {
         }
     }, 500);
 }
-  
 
 function setRotateInProgress(row, col) {
     rotateInProgress = true;
