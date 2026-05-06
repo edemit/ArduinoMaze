@@ -9,6 +9,21 @@ let selectedPos = null; // currently selected cell for actions (row,col)
 let mazeBuilded = false; // Flag to indicate if the maze has been built
 let mazeDataArray = []; // Temporary array to hold incoming maze data bytes
 
+const markerCellPos = { row: 7, col: 7 }; // 8x8 cell in 1-based coordinates
+
+function ensureMarkerCell() {
+    const markerCell = document.getElementById(`cell-${markerCellPos.row}-${markerCellPos.col}`);
+    if (!markerCell) {
+        return;
+    }
+
+    markerCell.textContent = 'X';
+    markerCell.style.textAlign = 'center';
+    markerCell.style.alignContent = 'center';
+    markerCell.style.fontWeight = 'bold';
+    markerCell.style.color = '#45e24a';
+}
+
 
 function isPlayerAtCell(row, col) {
     return playerPos.row === row && playerPos.col === col;
@@ -134,6 +149,7 @@ function renderMazeWithBorders(mazeData) {
         selectedPos = { row: playerPos.row, col: playerPos.col };
     }
     updateSelectedDisplay();
+    ensureMarkerCell();
 
     // Stop idle animation when maze is loaded
     stopIdleAnimation();
@@ -187,6 +203,7 @@ function initializeMazeGrid() {
         selectedPos = { row: playerPos.row, col: playerPos.col };
     }
     updateSelectedDisplay();
+    ensureMarkerCell();
     
     startIdleAnimation();
 }
